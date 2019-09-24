@@ -1,20 +1,26 @@
 package com.js.mymvvmtext
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import com.js.mymvvmtext.databinding.ActivityMainBinding
 import com.js.mymvvmtext.vm.MyViewModel
+import com.js.mymvvmtext.vm.MyViewModelFactory
 import kotlinx.coroutines.*
-import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity() {
 
+    //添加DataBinding
     private lateinit var mBinding: ActivityMainBinding
-    private lateinit var mViewModel: MyViewModel
+    //private lateinit var mViewModel: MyViewModel;
+    //通过工厂方式懒加载,只有调用mViewMode.xxx才会创建
+    //需要引入activity-ktx包，且需要java 1.8
+    //viewModels是ComponentActivity的一个扩展方法
+    private val mViewModel: MyViewModel by viewModels {
+        MyViewModelFactory()
+    }
     private var mIsRunning = false
 
     private val mPath = arrayOf(R.drawable.girl, R.drawable.girl2)
@@ -22,12 +28,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         //setContentView(R.layout.activity_main)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        mViewModel = ViewModelProviders.of(this).get(MyViewModel::class.java)
+        //一般使用这种方式
+        //mViewModel = ViewModelProviders.of(this).get(MyViewModel::class.java)
         mBinding.isShowImage = false
-        mBinding.url = mPath[1]
+        mBinding.url = mPath[0]
         mBinding.btOpen.setOnClickListener {
             mBinding.isShowImage = true
             mIsRunning = true
+            //异步更新数据，测试界面更新
             GlobalScope.launch {
                 while (mIsRunning) {
                     delay(2000)
@@ -41,12 +49,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
         mViewModel.mChangeCount.observe(this@MainActivity, Observer<Int> {
             mBinding.url = mPath[it]
         })
-
-
     }
 
     override fun onStop() {
