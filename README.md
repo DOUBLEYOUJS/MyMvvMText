@@ -1,2 +1,2 @@
 # MyMvvMText
-MvvM简单应用
+databinding、viewmodel简单应用
